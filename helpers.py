@@ -1,8 +1,8 @@
-import numpy as np 
+import numpy as np
 
 DENS = 0
 MOMX = 1
-MOMY = 2 
+MOMY = 2
 ENER = 3
 VELX = 1
 VELY = 2
@@ -10,12 +10,12 @@ PRES = 3
 FWD = 1
 BWD = -1
 
-def stabilization_roe(u_l, up_l, u_r, up_r): 
+def stabilization_roe(u_l, up_l, u_r, up_r):
     # Calculate left/right conservative variables
     #-----------------------------------------------------------------------------------------------------------------------------------
     # Calculate left/right enthalpy
     H_r=(u_r[:,ENER] + up_r[:,PRES])/u_r[:,DENS]
-    H_l=(u_l[:,ENER] + up_r[:,PRES])/u_l[:,DENS]
+    H_l=(u_l[:,ENER] + up_l[:,PRES])/u_l[:,DENS]
     #-----------------------------------------------------------------------------------------------------------------------------------
     # Calculate sqrt(rho)
     sqrt_rho_r = np.sqrt(u_r[:,DENS])
@@ -71,7 +71,7 @@ def stabilization_roe(u_l, up_l, u_r, up_r):
     c_quer_q = 1./c_bar
     gamma2   = -0.4*c_quer_q*c_quer_q * (delta_rho*(v1_bar*v1_bar-H_bar)+ delta_eq - delta_m1*v1_bar )
     gamma1   = -0.5*c_quer_q*(delta_m1-delta_rho*(v1_bar+c_bar))-0.5*gamma2
-    gamma4   = delta_rho - gamma1 - gamma2 
+    gamma4   = delta_rho - gamma1 - gamma2
     gamma3   = delta_m2 - v2_bar*delta_rho
     return   gamma1[...,np.newaxis]*np.abs(a1[...,np.newaxis])*r1 \
            + gamma2[...,np.newaxis]*np.abs(a2[...,np.newaxis])*r2 \
