@@ -15,6 +15,8 @@
    "cell_type": "markdown",
    "metadata": {},
    "source": [
+    "### Config and Imports\n",
+    "\n",
     "First, we specify the input parameters that can be changed; We can play around with these later."
    ]
   },
@@ -24,8 +26,8 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "airfoil_angle = 10. # degrees \n",
-    "airspeed = 450. # m/s"
+    "airfoil_angle = 15. # degrees \n",
+    "airspeed = 150. # m/s"
    ]
   },
   {
@@ -54,6 +56,8 @@
    "cell_type": "markdown",
    "metadata": {},
    "source": [
+    "### Grid Generation\n",
+    "\n",
     "We divide the air flow region around the arifoil into triangular cells. This is called a \"mesh\" or a \"grid\".\n",
     "\n",
     "We use an external library for this."
@@ -89,7 +93,15 @@
    "source": [
     "This code gives us two arrays:\n",
     "- The `nodes` array contains coordinates of all the corners of the triangles. For example, node number 354 has `x=0.26` and `y=0.51`. \n",
-    "- The `cells` array contains the nodes that make up each cell. For example, cell number 17 has the corner nodes number 254, 341 and 12. \n",
+    "- The `cells` array contains the nodes that make up each cell. For example, cell number 17 has the corner nodes number 254, 341 and 12. "
+   ]
+  },
+  {
+   "attachments": {},
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Plot Grid\n",
     "\n",
     "Let's have a look at the grid we have generated!"
    ]
@@ -114,6 +126,8 @@
    "cell_type": "markdown",
    "metadata": {},
    "source": [
+    "### Cell Connectivity\n",
+    "\n",
     "We want to calculate how much air flows from one cell into another. For this, some information on how the cells are connected, In particular, we need: \n",
     "- An array of `sides`, each of which connects to adjacent cells. Later, we will calculate how much air flows over which side.\n",
     "- An array `cell2side` that maps each cell to its three sides. For example, the sides 35, 85 and 293 make up cell number 105. \n",
@@ -155,6 +169,8 @@
    "cell_type": "markdown",
    "metadata": {},
    "source": [
+    "### Grid Geometry\n",
+    "\n",
     "We need some further geometric information on our mesh of cells: \n",
     "- The `volume` (i.e. area, since we are two-dimensional) of each cell\n",
     "- The `length` of each side between two cells\n",
@@ -192,9 +208,12 @@
    ]
   },
   {
+   "attachments": {},
    "cell_type": "markdown",
    "metadata": {},
-   "source": []
+   "source": [
+    "### Define Soluion Arrays"
+   ]
   },
   {
    "cell_type": "code",
@@ -202,23 +221,33 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "# solution arrays\n",
+    "# solution arrays:\n",
+    "# cells \n",
     "u = np.zeros((n_cells, 4))\n",
     "up = np.zeros((n_cells, 4))\n",
+    "# sides\n",
+    "u_left = np.zeros((n_sides, 4))\n",
+    "u_right = np.zeros((n_sides, 4))\n",
     "\n",
-    "# define indices\n",
-    "\n",
+    "# define indices for variables defining state of the air: \n",
     "# conservative variables\n",
-    "DENS = 0\n",
-    "MOMX = 1\n",
-    "MOMY = 2 \n",
-    "ENER = 3\n",
-    "\n",
+    "DENS = 0  # density\n",
+    "MOMX = 1  # momentum in x-direction\n",
+    "MOMY = 2  # momentum in y-direction\n",
+    "ENER = 3  # (total) energy \n",
     "# primitive variables\n",
     "# DENS = 0 (already defined)\n",
-    "VELX = 1\n",
-    "VELY = 2\n",
-    "PRES = 3"
+    "VELX = 1  # velocity in x-direction\n",
+    "VELY = 2  # velocity in y-direction\n",
+    "PRES = 3  # pressure"
+   ]
+  },
+  {
+   "attachments": {},
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Initialize Solution "
    ]
   },
   {
@@ -253,10 +282,6 @@
     "\n",
     "u[:,:] = freeflow\n",
     "\n",
-    "u_left = np.zeros((n_sides, 4))\n",
-    "u_right = np.zeros((n_sides, 4))\n",
-    "\n",
-    "u_right[bc_outr,:] = freeflow\n",
     "\n",
     "# calculate flux \n"
    ]
@@ -307,9 +332,11 @@
     "\n",
     "    f_left = flux(u_left, up_left) \n",
     "    f_right = flux(u_right, up_right) \n",
+    "    f = 0.5 * (f_left + f_right) \n",
     "\n",
     "    a = np.maximum(lmbda(up_left), lmbda(up_right))\n",
-    "    f = 0.5 * (f_left + f_right) - 0.5 * a[...,np.newaxis] * (u_right-u_left)\n",
+    "    stabilization = -0.5 * a[...,np.newaxis] * (u_right-u_left)\n",
+    "    f = f + stabilization\n",
     "    return f\n",
     "\n",
     "\n",
@@ -320,8 +347,8 @@
     "def lmbda(up): \n",
     "    return sos(up)+np.sqrt(up[:,VELX]**2+up[:,VELY]**2)\n",
     "\n",
-    "def timestep(up, dx): \n",
-    "    return 0.99*dx/np.max(lmbda(up))\n",
+    "def timestep(up, min_cell_size): \n",
+    "    return 0.99*min_cell_size/np.max(lmbda(up))\n",
     "\n",
     "def change_of_state(f): \n",
     "\n",
@@ -329,9 +356,11 @@
     "    rotate(f, dir=BWD)\n",
     "\n",
     "    up = constoprim(u)\n",
+    "\n",
     "    if np.min(up[:,DENS]) < 0. or np.min(up[:,PRES]) < 0.:   \n",
-    "        raise Exception(f\"Negative pressure or density encountered!\")\n",
-    "    time_step = timestep(up, 0.001)\n",
+    "        raise Exception(\"Negative pressure or density encountered!\")\n",
+    "    \n",
+    "    time_step = timestep(up, min_cell_size=0.001)\n",
     "\n",
     "    # add flux to cells \n",
     "    f = f * np.reshape(length,(n_sides,1))\n",
@@ -342,13 +371,22 @@
    ]
   },
   {
+   "attachments": {},
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Run Simulation"
+   ]
+  },
+  {
    "cell_type": "code",
    "execution_count": null,
    "metadata": {},
    "outputs": [],
    "source": [
     "\n",
-    "for i_timestep in range(3000): \n",
+    "number_of_timesteps = 3000\n",
+    "for i_timestep in range(number_of_timesteps): \n",
     "    u_left, u_right = fill_sides() \n",
     "    f = calc_flux()\n",
     "    u = u + change_of_state(f)"
@@ -359,6 +397,8 @@
    "cell_type": "markdown",
    "metadata": {},
    "source": [
+    "### Calulcate Forces on Airfoil\n",
+    "\n",
     "After the simulation is finished, we calculate the forces (i.e. the lift and drag) that the air exerts on the airfoil.\n",
     "For this, we need the pressure on each wall boundary side, which e multiply by each side length. The direction of the pressure is given by the normal vector of the side. \n",
     "\n",
@@ -373,7 +413,7 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "forces = (primtocons(u[side2cell[bc_wall,0],:])[:,PRES] - freeflow_prim[:,PRES]) * length[bc_wall]\n",
+    "forces = (primtocons(u[side2cell[bc_wall,0],:])[:,PRES]) * length[bc_wall]\n",
     "forces = forces[...,np.newaxis] * normal[bc_wall,:]\n",
     "fsum = np.sum(forces, axis=0)\n",
     "fsum_abs = np.linalg.norm(fsum)\n",
@@ -385,6 +425,8 @@
    "cell_type": "markdown",
    "metadata": {},
    "source": [
+    "### Plot Results\n",
+    "\n",
     "The rest is just plotting... "
    ]
   },
