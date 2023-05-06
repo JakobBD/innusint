@@ -1,8 +1,88 @@
-Intro:
-- stoff von mehreren jahren studium
-- draw the rest of the owl
-- euch werden die köpfe rauchen
-- am ende fällt immer mehr vom himmel
+Notes: 
+- Steckdosen mitnehmen
+- Nach Flipchart fragen? 
 
+Ablauf:
+- Time: 
+- 15 min intro
+    - hidden figures 
+    - was ist numerik (nur grob)
+    - was kann man damit alles rechnen (Bilder-Schau)
+- Was soll/wird der Kurs
+    - Gedacht für Leute ohne technischen/Coding-Hintergrund
+        - Trotzdem einige einfache Physik/Mathe, meist ohne Formeln sondern nach Anschauung
+        - Umfrage: Wer hat technisches Studium / Wer hat schon mal programmiert (+ Python)
+    - Thema: Einführung in Strömungssimulation: 
+        - Wie fliegt ein Flugzeug? / Luft-Strömung um Tragflügel
+    - Vier Schritte:
+        0 Programmierung für Dummies
+        1 Euler-Verfahren - Ballwurf
+        2 Warum brechen Wellen am Strand? 
+        3 Luft in einem Rohr 
+        4 Luft um einen Flügel
+    - Jeder Schritt: 
+        - Theorie
+        - Code anschauen, ggf. programmieren (alles mit Anleitung)
+        - Simulieren, rumspielen mit Ergebnissen
+    - Eigentlich ist das Wahnsinn    
+        - stoff von mehreren jahren studium
+        - Draw the rest of the owl
+        - Detailgrad nimmt zum Ende hin ab, am Anfang schrieben wir alles selbst, am Ende fällt immer mehr vom Himmel
+        - Euch werden die köpfe rauchen
+    - Fragen? 
 
-- hidden figures Euler-Verfahren
+- 15 min coding/python intro
+    - jupyter notebook setup / demo
+    - was ist eine variable / eine code-Zeile
+    - kommentare 
+    - variablen-typen, arrays
+    - for-schleifen, if-bedingungen
+    - funktionen
+    - libraries
+    - google
+- 40 min ball (5 intro + 35 coding?)
+    
+- Konkretes Beispiel: Euler-Verfahren
+    - Ballwurf mit/ohne Widerstand, analytische Lösung 
+    - Euler-Verfahren
+    - Zustände (fragen): Position und Geschwindigkeit; Wie ändern die sich?
+        --> Geschwindigkeit und Beschleunigung.
+        - Vektoren erklären (Zerlegung in horizontale und vertikale Komponente)
+
+- 25 min Öl im Fluss (5 + 20)
+    - Bild zur Physik
+    - Idee FV: Zellen, konstant in jeder Zelle, Fluss von einer Zelle in die Andere, Zeitschritte
+    - Ränder (Einström-RB!)
+    - numpy array mit Lösung
+
+- 30 min air_in_pipe (15 + 15)
+    - Physik: Höherer Druck an einer Stelle
+    - Was ist hier anders als vorher? 
+    - Geschwindigkeit nicht mehr konstant, alles hängt von allem ab.
+    - Frage: Was macht Zustand aus? --> primitiv 
+    - Erhaltungsgrößen --> Masse, Impuls, Energie
+    - Wieder zerteilen in Zellen
+    - Was fließt von der einen Zelle in die andere? 
+
+- 40 min airfoil (15+15+10 spielen)
+    - 2D
+    - Zustand jetzt mit 2 Geschwindigkeitskomponenten
+    - Zerlegung in Zellen: Dreiecke 
+        - Fluss von einem Dreieck ins andere
+        - Jede Mengen Folgen für Programierung 
+            - Alle sehen anders aus: Größe, Richtung
+            - Nachbarn: Seiten
+        - Drehung in lokales KOS / der strömung ist es egal, in welchem koordinatensytem man sie betrachtet
+    - Randbedingungen: Außen & Wand 
+- 15 min outro 
+    - next steps
+        - 3D 
+        - Reibung --> Wirbel, Turbulenz
+        - nicht konstant in Zelle
+        - Viel mehr Zellen --> teuerste Rechnungen der Welt, größte Rechner der Welt
+    - videos
+        - Große DNS
+        - Fahrwerk
+        - Windrad tanzt
+        - Heidelberg Universum
+        - Schere Stein Papier
